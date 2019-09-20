@@ -1,0 +1,3 @@
+rootProject.name = 'okiox.coroutines'
+
+enableFeaturePreview('GRADLE_METADATA')
