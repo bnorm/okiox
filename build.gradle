@@ -4,8 +4,8 @@ plugins {
 repositories {
     mavenCentral()
 }
-group 'okiox.coroutines'
-version '0.1.0'
+group 'com.bnorm.okiox.coroutines'
+version '0.1.0-SNAPSHOT'
 
 apply plugin: 'maven-publish'
 
