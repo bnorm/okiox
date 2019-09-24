@@ -340,13 +340,6 @@ interface BufferedAsyncSource : AsyncSource {
    * written to `sink` which will be 0 if this is exhausted.
    */
   @Throws(IOException::class)
-  suspend fun readAll(sink: Sink): Long
-
-  /**
-   * Removes all bytes from this and appends them to `sink`. Returns the total number of bytes
-   * written to `sink` which will be 0 if this is exhausted.
-   */
-  @Throws(IOException::class)
   suspend fun readAll(sink: AsyncSink): Long
 
   /**

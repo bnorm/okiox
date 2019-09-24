@@ -71,6 +71,7 @@ internal class RealBufferedAsyncSource(
   }
 
   override suspend fun readByteString(): ByteString {
+    check(!closed) { "closed" }
     buffer.writeAll(source)
     return buffer.readByteString()
   }
@@ -105,6 +106,7 @@ internal class RealBufferedAsyncSource(
   }
 
   override suspend fun readByteArray(): ByteArray {
+    check(!closed) { "closed" }
     buffer.writeAll(source)
     return buffer.readByteArray()
   }
@@ -136,6 +138,7 @@ internal class RealBufferedAsyncSource(
   override suspend fun read(sink: ByteArray, offset: Int, byteCount: Int): Int {
     // TODO checkOffsetAndCount(sink.size.toLong(), offset.toLong(), byteCount.toLong())
 
+    check(!closed) { "closed" }
     if (buffer.size == 0L) {
       val read = source.read(buffer, SEGMENT_SIZE)
       if (read == -1L) return -1
@@ -157,23 +160,8 @@ internal class RealBufferedAsyncSource(
     buffer.readFully(sink, byteCount)
   }
 
-  override suspend fun readAll(sink: Sink): Long {
-    var totalBytesWritten: Long = 0
-    while (source.read(buffer, SEGMENT_SIZE) != -1L) {
-      val emitByteCount = buffer.completeSegmentByteCount()
-      if (emitByteCount > 0L) {
-        totalBytesWritten += emitByteCount
-        sink.write(buffer, emitByteCount)
-      }
-    }
-    if (buffer.size > 0L) {
-      totalBytesWritten += buffer.size
-      sink.write(buffer, buffer.size)
-    }
-    return totalBytesWritten
-  }
-
   override suspend fun readAll(sink: AsyncSink): Long {
+    check(!closed) { "closed" }
     var totalBytesWritten: Long = 0
     while (source.read(buffer, SEGMENT_SIZE) != -1L) {
       val emitByteCount = buffer.completeSegmentByteCount()
@@ -190,6 +178,7 @@ internal class RealBufferedAsyncSource(
   }
 
   override suspend fun readUtf8(): String {
+    check(!closed) { "closed" }
     buffer.writeAll(source)
     return buffer.readUtf8()
   }

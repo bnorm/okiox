@@ -49,17 +49,6 @@ interface BufferedAsyncSink : AsyncSink {
    * which will be 0 if `source` is exhausted.
    */
   @Throws(IOException::class)
-  suspend fun writeAll(source: Source): Long
-
-  /** Removes `byteCount` bytes from `source` and appends them to this sink. */
-  @Throws(IOException::class)
-  suspend fun write(source: Source, byteCount: Long): BufferedAsyncSink
-
-  /**
-   * Removes all bytes from `source` and appends them to this sink. Returns the number of bytes read
-   * which will be 0 if `source` is exhausted.
-   */
-  @Throws(IOException::class)
   suspend fun writeAll(source: AsyncSource): Long
 
   /** Removes `byteCount` bytes from `source` and appends them to this sink. */

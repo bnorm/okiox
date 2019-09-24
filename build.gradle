@@ -1,13 +1,13 @@
 plugins {
     id 'org.jetbrains.kotlin.multiplatform' version '1.3.50'
 }
+
 repositories {
     mavenCentral()
 }
+
 group 'com.bnorm.okiox.coroutines'
 version '0.1.0-SNAPSHOT'
-
-apply plugin: 'maven-publish'
 
 kotlin {
     jvm()

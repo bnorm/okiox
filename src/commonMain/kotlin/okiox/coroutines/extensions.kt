@@ -17,8 +17,7 @@
 @file:JvmName("-Extensions")
 package okiox.coroutines
 
-import okio.BufferedSink
-import okio.BufferedSource
+import okio.Buffer
 import okio.EOFException
 import okio.IOException
 import okiox.coroutines.internal.Throws
@@ -27,14 +26,25 @@ import kotlin.jvm.JvmName
 internal const val SEGMENT_SIZE = 8192.toLong()
 
 /**
+ * Removes all bytes from this and appends them to `sink`. Returns the total number of bytes
+ * written to `sink` which will be 0 if this is exhausted.
+ */
+@Throws(IOException::class)
+suspend fun Buffer.readAll(sink: AsyncSink): Long {
+  val size = this.size
+  sink.write(this, size)
+  return size
+}
+
+/**
  * Removes all bytes from `source` and appends them to this sink. Returns the number of bytes read
  * which will be 0 if `source` is exhausted.
  */
 @Throws(IOException::class)
-suspend fun BufferedSink.writeAll(source: AsyncSource): Long {
+suspend fun Buffer.writeAll(source: AsyncSource): Long {
   var totalBytesRead = 0L
   while (true) {
-    val readCount: Long = source.read(buffer, SEGMENT_SIZE)
+    val readCount: Long = source.read(this, SEGMENT_SIZE)
     if (readCount == -1L) break
     totalBytesRead += readCount
     emitCompleteSegments()
@@ -44,10 +54,10 @@ suspend fun BufferedSink.writeAll(source: AsyncSource): Long {
 
 /** Removes `byteCount` bytes from `source` and appends them to this sink. */
 @Throws(IOException::class)
-suspend fun BufferedSink.write(source: AsyncSource, byteCount: Long): BufferedSink {
+suspend fun Buffer.write(source: AsyncSource, byteCount: Long): Buffer {
   var remaining = byteCount
   while (remaining > 0L) {
-    val read = source.read(buffer, remaining)
+    val read = source.read(this, remaining)
     if (read == -1L) throw EOFException()
     remaining -= read
     emitCompleteSegments()
@@ -60,7 +70,7 @@ suspend fun BufferedSink.write(source: AsyncSource, byteCount: Long): BufferedSi
  * written to `sink` which will be 0 if this is exhausted.
  */
 @Throws(IOException::class)
-suspend fun BufferedSource.readAll(sink: AsyncSink): Long {
+suspend fun BufferedAsyncSource.readAll(sink: Buffer): Long {
   var totalBytesWritten: Long = 0
   while (read(buffer, SEGMENT_SIZE) != -1L) {
     val emitByteCount = buffer.completeSegmentByteCount()
@@ -74,4 +84,16 @@ suspend fun BufferedSource.readAll(sink: AsyncSink): Long {
     sink.write(buffer, buffer.size)
   }
   return totalBytesWritten
+}
+
+/**
+ * Removes all bytes from `source` and appends them to this sink. Returns the number of bytes read
+ * which will be 0 if `source` is exhausted.
+ */
+@Throws(IOException::class)
+suspend fun BufferedAsyncSink.writeAll(source: Buffer): Long {
+  val size = source.size
+  buffer.write(source, size)
+  emitCompleteSegments()
+  return size
 }

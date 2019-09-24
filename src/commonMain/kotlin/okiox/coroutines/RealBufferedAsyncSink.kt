@@ -63,29 +63,8 @@ internal class RealBufferedAsyncSink(
     return emitCompleteSegments()
   }
 
-  override suspend fun writeAll(source: Source): Long {
-    var totalBytesRead = 0L
-    while (true) {
-      val readCount: Long = source.read(buffer, SEGMENT_SIZE)
-      if (readCount == -1L) break
-      totalBytesRead += readCount
-      emitCompleteSegments()
-    }
-    return totalBytesRead
-  }
-
-  override suspend fun write(source: Source, byteCount: Long): BufferedAsyncSink {
-    var remaining = byteCount
-    while (remaining > 0L) {
-      val read = source.read(buffer, remaining)
-      if (read == -1L) throw EOFException()
-      remaining -= read
-      emitCompleteSegments()
-    }
-    return this
-  }
-
   override suspend fun writeAll(source: AsyncSource): Long {
+    check(!closed) { "closed" }
     var totalBytesRead = 0L
     while (true) {
       val readCount: Long = source.read(buffer, SEGMENT_SIZE)
@@ -97,6 +76,7 @@ internal class RealBufferedAsyncSink(
   }
 
   override suspend fun write(source: AsyncSource, byteCount: Long): BufferedAsyncSink {
+    check(!closed) { "closed" }
     var remaining = byteCount
     while (remaining > 0L) {
       val read = source.read(buffer, remaining)
