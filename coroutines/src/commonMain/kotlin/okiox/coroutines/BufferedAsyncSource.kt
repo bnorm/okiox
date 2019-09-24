@@ -21,7 +21,6 @@ import okio.ByteString
 import okio.EOFException
 import okio.IOException
 import okio.Options
-import okio.Sink
 import okiox.coroutines.internal.Throws
 
 /**

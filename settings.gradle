@@ -1,3 +1,6 @@
-rootProject.name = 'okiox-coroutines'
+rootProject.name = 'okiox'
+
+include(":coroutines")
+project(":coroutines").name = "okiox-coroutines"
 
 enableFeaturePreview('GRADLE_METADATA')

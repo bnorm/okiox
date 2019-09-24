@@ -1,0 +1,72 @@
+plugins {
+    id 'org.jetbrains.kotlin.multiplatform'
+}
+
+kotlin {
+    jvm()
+    js {
+        configure([compilations.main, compilations.test]) {
+            tasks.getByName(compileKotlinTaskName).kotlinOptions {
+                moduleKind = "umd"
+                sourceMap = true
+                metaInfo = true
+            }
+        }
+        nodejs()
+    }
+    iosX64()
+    iosArm64()
+    // Required to generate tests tasks: https://youtrack.jetbrains.com/issue/KT-26547
+    linuxX64()
+    macosX64()
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation kotlin('stdlib-common')
+                api "com.squareup.okio:okio-multiplatform:2.4.0"
+                api "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.1"
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation kotlin('test-common')
+                implementation kotlin('test-annotations-common')
+            }
+        }
+        jvmMain {
+            dependencies {
+                implementation kotlin('stdlib-jdk8')
+                api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.1"
+            }
+        }
+        jvmTest {
+            dependencies {
+                implementation kotlin('test')
+                implementation kotlin('test-junit')
+            }
+        }
+        jsMain {
+            dependencies {
+                implementation kotlin('stdlib-js')
+                api "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.3.1"
+            }
+        }
+        jsTest {
+            dependencies {
+                implementation kotlin('test-js')
+            }
+        }
+        nativeMain {
+            dependsOn commonMain
+        }
+        nativeTest {
+            dependsOn commonTest
+        }
+        configure([iosX64Main, iosArm64Main, linuxX64Main, macosX64Main]) {
+            dependsOn nativeMain
+        }
+        configure([iosX64Test, iosArm64Test, linuxX64Test, macosX64Test]) {
+            dependsOn nativeTest
+        }
+    }
+}

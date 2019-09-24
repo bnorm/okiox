@@ -19,7 +19,6 @@ package okiox.coroutines
 import okio.Buffer
 import okio.ByteString
 import okio.IOException
-import okio.Source
 import okiox.coroutines.internal.Throws
 
 /**
