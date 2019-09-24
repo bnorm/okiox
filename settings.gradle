@@ -1,5 +1,8 @@
 rootProject.name = 'okiox'
 
+include(":cipher")
+project(":cipher").name = "okiox-cipher"
+
 include(":coroutines")
 project(":coroutines").name = "okiox-coroutines"
 
