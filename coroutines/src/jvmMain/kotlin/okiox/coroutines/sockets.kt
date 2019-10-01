@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@file:JvmName("-ChannelsJvm")
+@file:JvmName("-SocketsJvm")
 @file:Suppress("BlockingMethodInNonBlockingContext")
 
 package okiox.coroutines
