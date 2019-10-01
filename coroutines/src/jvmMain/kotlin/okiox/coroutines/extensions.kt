@@ -15,11 +15,13 @@
  */
 
 @file:JvmName("-ExtensionsJvm")
+
 package okiox.coroutines
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import okio.Buffer
 import okio.Sink
 import okio.Source
@@ -27,7 +29,6 @@ import okio.Timeout
 import kotlin.coroutines.CoroutineContext
 
 fun Sink.toAsync(context: CoroutineContext = Dispatchers.IO): AsyncSink {
-  // TODO timeout
   class ForwardingAsyncSink(val delegate: Sink) : AsyncSink {
     override suspend fun write(source: Buffer, byteCount: Long) = withContext(context) {
       delegate.write(source, byteCount)
@@ -44,27 +45,34 @@ fun Sink.toAsync(context: CoroutineContext = Dispatchers.IO): AsyncSink {
   return ForwardingAsyncSink(this)
 }
 
-fun AsyncSink.toBlocking(timeout: Timeout = Timeout()): Sink {
+fun AsyncSink.toBlocking(): Sink {
   class ForwardingSink(val delegate: AsyncSink) : Sink {
+    val timeout = Timeout()
+
     override fun write(source: Buffer, byteCount: Long) = runBlocking {
-      delegate.write(source, byteCount)
+      withTimeout(timeout) {
+        delegate.write(source, byteCount)
+      }
     }
 
     override fun flush() = runBlocking {
-      delegate.flush()
+      withTimeout(timeout) {
+        delegate.flush()
+      }
+    }
+
+    override fun close() = runBlocking {
+      withTimeout(timeout) {
+        delegate.close()
+      }
     }
 
     override fun timeout() = timeout
-
-    override fun close() = runBlocking {
-      delegate.close()
-    }
   }
   return ForwardingSink(this)
 }
 
 fun Source.toAsync(context: CoroutineContext = Dispatchers.IO): AsyncSource {
-  // TODO timeout
   class ForwardingAsyncSource(val delegate: Source) : AsyncSource {
     override suspend fun read(sink: Buffer, byteCount: Long) = withContext(context) {
       delegate.read(sink, byteCount)
@@ -77,17 +85,43 @@ fun Source.toAsync(context: CoroutineContext = Dispatchers.IO): AsyncSource {
   return ForwardingAsyncSource(this)
 }
 
-fun AsyncSource.toBlocking(timeout: Timeout = Timeout()): Source {
+fun AsyncSource.toBlocking(): Source {
   class ForwardingSource(val delegate: AsyncSource) : Source {
+    val timeout = Timeout()
+
     override fun read(sink: Buffer, byteCount: Long) = runBlocking {
-      delegate.read(sink, byteCount)
+      withTimeout(timeout) {
+        delegate.read(sink, byteCount)
+      }
+    }
+
+    override fun close() = runBlocking {
+      withTimeout(timeout) {
+        delegate.close()
+      }
     }
 
     override fun timeout() = timeout
-
-    override fun close() = runBlocking {
-      delegate.close()
-    }
   }
   return ForwardingSource(this)
+}
+
+internal suspend inline fun <R> withTimeout(timeout: Timeout, crossinline block: suspend () -> R): R {
+  if (timeout.timeoutNanos() == 0L && !timeout.hasDeadline()) {
+    return block()
+  }
+
+  val now = System.nanoTime()
+  val waitNanos = when {
+    // Compute the earliest event; either timeout or deadline. Because nanoTime can wrap
+    // around, minOf() is undefined for absolute values, but meaningful for relative ones.
+    timeout.timeoutNanos() != 0L && timeout.hasDeadline() -> minOf(timeout.timeoutNanos(), timeout.deadlineNanoTime() - now)
+    timeout.timeoutNanos() != 0L -> timeout.timeoutNanos()
+    timeout.hasDeadline() -> timeout.deadlineNanoTime() - now
+    else -> throw AssertionError()
+  }
+
+  return withTimeout((waitNanos / 1_000_000f).toLong()) {
+    block()
+  }
 }
