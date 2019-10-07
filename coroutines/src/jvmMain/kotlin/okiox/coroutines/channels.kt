@@ -39,7 +39,8 @@ suspend fun AsynchronousSocketChannel.source(): AsyncSource {
       buffer.clear()
       buffer.limit(minOf(buffer.capacity(), byteCount.toInt()))
       val read = channel.aRead(buffer)
-      if (read > 0) sink.write(buffer.flip())
+      buffer.flip()
+      if (read > 0) sink.write(buffer)
       return read.toLong()
     }
 
@@ -91,7 +92,8 @@ suspend fun AsynchronousFileChannel.source(): AsyncSource {
       val read = channel.aRead(buffer, position)
       if (read > 0) {
         position += read
-        sink.write(buffer.flip())
+        buffer.flip()
+        sink.write(buffer)
       }
       return read.toLong()
     }
