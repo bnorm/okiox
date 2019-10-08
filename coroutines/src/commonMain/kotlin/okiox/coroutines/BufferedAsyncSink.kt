@@ -22,11 +22,10 @@ import okio.IOException
 import okiox.coroutines.internal.Throws
 
 /**
- * Returns a new source that buffers reads from `source`. The returned source will perform bulk
- * reads into its in-memory buffer. Use this wherever you read a source to get an ergonomic and
- * efficient access to data.
+ * Returns a new sink that buffers writes to `sink`. The returned sink will batch writes to `sink`.
+ * Use this wherever you write to a sink to get an ergonomic and efficient access to data.
  */
-fun AsyncSource.buffer(): BufferedAsyncSource = RealBufferedAsyncSource(this)
+fun AsyncSink.buffer(): BufferedAsyncSink = RealBufferedAsyncSink(this)
 
 /**
  * A sink that keeps a buffer internally so that callers can do small writes without a performance
