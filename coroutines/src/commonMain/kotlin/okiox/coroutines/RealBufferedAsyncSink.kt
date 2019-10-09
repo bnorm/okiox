@@ -19,7 +19,6 @@ package okiox.coroutines
 import okio.Buffer
 import okio.ByteString
 import okio.EOFException
-import okio.Source
 import kotlin.jvm.JvmField
 
 internal class RealBufferedAsyncSink(
@@ -34,34 +33,20 @@ internal class RealBufferedAsyncSink(
     inline get() = bufferField
 
   override suspend fun write(source: Buffer, byteCount: Long) {
-    check(!closed) { "closed" }
-    buffer.write(source, byteCount)
-    emitCompleteSegments()
+    emitCompleteSegments { buffer.write(source, byteCount) }
   }
 
-  override suspend fun write(byteString: ByteString): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.write(byteString)
-    return emitCompleteSegments()
-  }
+  override suspend fun write(byteString: ByteString): BufferedAsyncSink =
+    emitCompleteSegments { buffer.write(byteString) }
 
-  override suspend fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeUtf8(string, beginIndex, endIndex)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeUtf8(string: String, beginIndex: Int, endIndex: Int): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeUtf8(string, beginIndex, endIndex) }
 
-  override suspend fun writeUtf8CodePoint(codePoint: Int): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeUtf8CodePoint(codePoint)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeUtf8CodePoint(codePoint: Int): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeUtf8CodePoint(codePoint) }
 
-  override suspend fun write(source: ByteArray, offset: Int, byteCount: Int): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.write(source, offset, byteCount)
-    return emitCompleteSegments()
-  }
+  override suspend fun write(source: ByteArray, offset: Int, byteCount: Int): BufferedAsyncSink =
+    emitCompleteSegments { buffer.write(source, offset, byteCount) }
 
   override suspend fun writeAll(source: AsyncSource): Long {
     check(!closed) { "closed" }
@@ -87,62 +72,39 @@ internal class RealBufferedAsyncSink(
     return this
   }
 
-  override suspend fun writeByte(b: Int): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeByte(b)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeByte(b: Int): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeByte(b) }
 
-  override suspend fun writeShort(s: Int): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeShort(s)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeShort(s: Int): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeShort(s) }
 
-  override suspend fun writeShortLe(s: Int): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeShortLe(s)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeShortLe(s: Int): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeShortLe(s) }
 
-  override suspend fun writeInt(i: Int): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeInt(i)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeInt(i: Int): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeInt(i) }
 
-  override suspend fun writeIntLe(i: Int): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeIntLe(i)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeIntLe(i: Int): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeIntLe(i) }
 
-  override suspend fun writeLong(v: Long): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeLong(v)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeLong(v: Long): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeLong(v) }
 
-  override suspend fun writeLongLe(v: Long): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeLongLe(v)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeLongLe(v: Long): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeLongLe(v) }
 
-  override suspend fun writeDecimalLong(v: Long): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeDecimalLong(v)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeDecimalLong(v: Long): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeDecimalLong(v) }
 
-  override suspend fun writeHexadecimalUnsignedLong(v: Long): BufferedAsyncSink {
-    check(!closed) { "closed" }
-    buffer.writeHexadecimalUnsignedLong(v)
-    return emitCompleteSegments()
-  }
+  override suspend fun writeHexadecimalUnsignedLong(v: Long): BufferedAsyncSink =
+    emitCompleteSegments { buffer.writeHexadecimalUnsignedLong(v) }
 
-  override suspend fun emitCompleteSegments(): BufferedAsyncSink {
+  override suspend fun emitCompleteSegments(): BufferedAsyncSink =
+    emitCompleteSegments {}
+
+  private suspend inline fun emitCompleteSegments(block: () -> Unit): BufferedAsyncSink {
     check(!closed) { "closed" }
+    block()
     val byteCount = buffer.completeSegmentByteCount()
     if (byteCount > 0L) sink.write(buffer, byteCount)
     return this
