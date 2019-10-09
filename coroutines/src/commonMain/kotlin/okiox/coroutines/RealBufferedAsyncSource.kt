@@ -20,7 +20,6 @@ import okio.Buffer
 import okio.ByteString
 import okio.EOFException
 import okio.Options
-import okio.Sink
 import kotlin.jvm.JvmField
 
 internal class RealBufferedAsyncSource(
@@ -274,9 +273,7 @@ internal class RealBufferedAsyncSource(
       if ((b < '0'.toByte() || b > '9'.toByte()) && (pos != 0L || b != '-'.toByte())) {
         // Non-digit, or non-leading negative sign.
         if (pos == 0L) {
-          TODO()
-//          throw NumberFormatException(String.format(
-//              "Expected leading [0-9] or '-' character but was %#x", b))
+          throw NumberFormatException("Expected leading [0-9] or '-' character but was 0x${b.toString(16)}")
         }
         break
       }
@@ -297,9 +294,7 @@ internal class RealBufferedAsyncSource(
           (b < 'A'.toByte() || b > 'F'.toByte())) {
         // Non-digit, or non-leading negative sign.
         if (pos == 0) {
-          TODO()
-//          throw NumberFormatException(String.format(
-//              "Expected leading [0-9a-fA-F] character but was %#x", b))
+          throw NumberFormatException("Expected leading [0-9a-fA-F] character but was 0x${b.toString(16)}")
         }
         break
       }
