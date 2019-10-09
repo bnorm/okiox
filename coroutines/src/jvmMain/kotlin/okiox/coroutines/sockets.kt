@@ -37,7 +37,8 @@ suspend fun Socket.source(): AsyncSource {
       buffer.clear()
       buffer.limit(minOf(buffer.capacity(), byteCount.toInt()))
       val read = channel.read(buffer)
-      if (read > 0) sink.write(buffer.flip())
+      buffer.flip()
+      if (read > 0) sink.write(buffer)
       return read.toLong()
     }
 
