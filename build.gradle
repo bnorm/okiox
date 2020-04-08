@@ -32,7 +32,7 @@ subprojects {
                 commonMain {
                     dependencies {
                         implementation kotlin('stdlib-common')
-                        api "com.squareup.okio:okio-multiplatform:2.4.0"
+                        api "com.squareup.okio:okio-multiplatform:2.5.0"
                     }
                 }
                 commonTest {
