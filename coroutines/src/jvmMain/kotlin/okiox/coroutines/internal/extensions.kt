@@ -19,6 +19,7 @@
 package okiox.coroutines.internal
 
 import okio.Buffer
+import okio.Timeout
 
 internal inline fun <R> Buffer.readUnsafe(
   cursor: Buffer.UnsafeCursor = Buffer.UnsafeCursor(),
@@ -35,5 +36,25 @@ internal inline fun <R> Buffer.readAndWriteUnsafe(
 ): R {
   return readAndWriteUnsafe(cursor).use {
     block(cursor)
+  }
+}
+
+internal suspend inline fun <R> withTimeout(timeout: Timeout, crossinline block: suspend () -> R): R {
+  if (timeout.timeoutNanos() == 0L && !timeout.hasDeadline()) {
+    return block()
+  }
+
+  val now = System.nanoTime()
+  val waitNanos = when {
+    // Compute the earliest event; either timeout or deadline. Because nanoTime can wrap
+    // around, minOf() is undefined for absolute values, but meaningful for relative ones.
+    timeout.timeoutNanos() != 0L && timeout.hasDeadline() -> minOf(timeout.timeoutNanos(), timeout.deadlineNanoTime() - now)
+    timeout.timeoutNanos() != 0L -> timeout.timeoutNanos()
+    timeout.hasDeadline() -> timeout.deadlineNanoTime() - now
+    else -> throw AssertionError()
+  }
+
+  return kotlinx.coroutines.withTimeout((waitNanos / 1_000_000f).toLong()) {
+    block()
   }
 }
