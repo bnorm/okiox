@@ -19,18 +19,13 @@ package okiox.coroutines
 import okio.Buffer
 import okio.ByteString
 import okio.EOFException
-import kotlin.jvm.JvmField
+import okiox.coroutines.internal.SEGMENT_SIZE
 
 internal class RealBufferedAsyncSink(
-  @JvmField val sink: AsyncSink
+  private val sink: AsyncSink
 ) : BufferedAsyncSink {
-
-  @JvmField val bufferField = Buffer()
-  @JvmField var closed: Boolean = false
-
-  @Suppress("OVERRIDE_BY_INLINE") // Prevent internal code from calling the getter.
-  override val buffer: Buffer
-    inline get() = bufferField
+  private var closed: Boolean = false
+  override val buffer = Buffer()
 
   override suspend fun write(source: Buffer, byteCount: Long) {
     emitCompleteSegments { buffer.write(source, byteCount) }

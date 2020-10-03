@@ -19,9 +19,7 @@ package okiox.coroutines
 import okio.Buffer
 import okio.ByteString
 import okio.EOFException
-import okio.IOException
 import okio.Options
-import okiox.coroutines.internal.Throws
 
 /**
  * Returns a new source that buffers reads from `source`. The returned source will perform bulk
@@ -43,25 +41,21 @@ interface BufferedAsyncSource : AsyncSource {
    * Returns true if there are no more bytes in this source. This will block until there are bytes
    * to read or the source is definitely exhausted.
    */
-  @Throws(IOException::class)
   suspend fun exhausted(): Boolean
 
   /**
    * Returns when the buffer contains at least `byteCount` bytes. Throws an
    * [EOFException] if the source is exhausted before the required bytes can be read.
    */
-  @Throws(IOException::class)
   suspend fun require(byteCount: Long)
 
   /**
    * Returns true when the buffer contains at least `byteCount` bytes, expanding it as
    * necessary. Returns false if the source is exhausted before the requested bytes can be read.
    */
-  @Throws(IOException::class)
   suspend fun request(byteCount: Long): Boolean
 
   /** Removes a byte from this source and returns it. */
-  @Throws(IOException::class)
   suspend fun readByte(): Byte
 
   /**
@@ -81,7 +75,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun readShort(): Short
 
   /**
@@ -101,7 +94,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun readShortLe(): Short
 
   /**
@@ -125,7 +117,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun readInt(): Int
 
   /**
@@ -149,7 +140,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun readIntLe(): Int
 
   /**
@@ -181,7 +171,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun readLong(): Long
 
   /**
@@ -213,7 +202,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun readLongLe(): Long
 
   /**
@@ -233,7 +221,6 @@ interface BufferedAsyncSource : AsyncSource {
    * @throws NumberFormatException if the found digits do not fit into a `long` or a decimal
    * number was not present.
    */
-  @Throws(IOException::class)
   suspend fun readDecimalLong(): Long
 
   /**
@@ -253,22 +240,18 @@ interface BufferedAsyncSource : AsyncSource {
    * @throws NumberFormatException if the found hexadecimal does not fit into a `long` or
    * hexadecimal was not found.
    */
-  @Throws(IOException::class)
   suspend fun readHexadecimalUnsignedLong(): Long
 
   /**
    * Reads and discards `byteCount` bytes from this source. Throws an [EOFException] if the
    * source is exhausted before the requested bytes can be skipped.
    */
-  @Throws(IOException::class)
   suspend fun skip(byteCount: Long)
 
   /** Removes all bytes bytes from this and returns them as a byte string. */
-  @Throws(IOException::class)
   suspend fun readByteString(): ByteString
 
   /** Removes `byteCount` bytes from this and returns them as a byte string. */
-  @Throws(IOException::class)
   suspend fun readByteString(byteCount: Long): ByteString
 
   /**
@@ -296,50 +279,42 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals('\n', buffer.readByte());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun select(options: Options): Int
 
   /** Removes all bytes from this and returns them as a byte array. */
-  @Throws(IOException::class)
   suspend fun readByteArray(): ByteArray
 
   /** Removes `byteCount` bytes from this and returns them as a byte array. */
-  @Throws(IOException::class)
   suspend fun readByteArray(byteCount: Long): ByteArray
 
   /**
    * Removes up to `sink.length` bytes from this and copies them into `sink`. Returns the number of
    * bytes read, or -1 if this source is exhausted.
    */
-  @Throws(IOException::class)
   suspend fun read(sink: ByteArray): Int
 
   /**
    * Removes exactly `sink.length` bytes from this and copies them into `sink`. Throws an
    * [EOFException] if the requested number of bytes cannot be read.
    */
-  @Throws(IOException::class)
   suspend fun readFully(sink: ByteArray)
 
   /**
    * Removes up to `byteCount` bytes from this and copies them into `sink` at `offset`. Returns the
    * number of bytes read, or -1 if this source is exhausted.
    */
-  @Throws(IOException::class)
   suspend fun read(sink: ByteArray, offset: Int, byteCount: Int): Int
 
   /**
    * Removes exactly `byteCount` bytes from this and appends them to `sink`. Throws an
    * [EOFException] if the requested number of bytes cannot be read.
    */
-  @Throws(IOException::class)
   suspend fun readFully(sink: Buffer, byteCount: Long)
 
   /**
    * Removes all bytes from this and appends them to `sink`. Returns the total number of bytes
    * written to `sink` which will be 0 if this is exhausted.
    */
-  @Throws(IOException::class)
   suspend fun readAll(sink: AsyncSink): Long
 
   /**
@@ -358,7 +333,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun readUtf8(): String
 
   /**
@@ -380,7 +354,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun readUtf8(byteCount: Long): String
 
   /**
@@ -411,7 +384,6 @@ interface BufferedAsyncSource : AsyncSource {
    * returned once the source is exhausted. Use this for human-generated data, where a trailing
    * line break is optional.
    */
-  @Throws(IOException::class)
   suspend fun readUtf8Line(): String?
 
   /**
@@ -423,7 +395,6 @@ interface BufferedAsyncSource : AsyncSource {
    * is thrown. Use this for machine-generated data where a missing line break implies truncated
    * input.
    */
-  @Throws(IOException::class)
   suspend fun readUtf8LineStrict(): String
 
   /**
@@ -447,7 +418,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals("12345", buffer.readUtf8LineStrict(5));
    * ```
    */
-  @Throws(IOException::class)
   suspend fun readUtf8LineStrict(limit: Long): String
 
   /**
@@ -462,7 +432,6 @@ interface BufferedAsyncSource : AsyncSource {
    * 0x10ffff limit of Unicode), code points for UTF-16 surrogates (U+d800..U+dfff) and overlong
    * encodings (such as `0xc080` for the NUL character in modified UTF-8).
    */
-  @Throws(IOException::class)
   suspend fun readUtf8CodePoint(): Int
 
   /**
@@ -472,7 +441,6 @@ interface BufferedAsyncSource : AsyncSource {
    * The scan terminates at either `toIndex` or the end of the buffer, whichever comes first. The
    * maximum number of bytes scanned is `toIndex-fromIndex`.
    */
-  @Throws(IOException::class)
   suspend fun indexOf(b: Byte, fromIndex: Long = 0L, toIndex: Long = Long.MAX_VALUE): Long
 
   /**
@@ -490,7 +458,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals(40, buffer.indexOf(MOVE, 12));
    * ```
    */
-  @Throws(IOException::class)
   suspend fun indexOf(bytes: ByteString, fromIndex: Long = 0L): Long
 
   /**
@@ -508,7 +475,6 @@ interface BufferedAsyncSource : AsyncSource {
    * assertEquals(11, buffer.indexOfElement(ANY_VOWEL, 9)); // 'a' in 'Grant'.
    * ```
    */
-  @Throws(IOException::class)
   suspend fun indexOfElement(targetBytes: ByteString, fromIndex: Long = 0L): Long
 
   /**
@@ -516,7 +482,6 @@ interface BufferedAsyncSource : AsyncSource {
    * This expands the buffer as necessary until a byte does not match, all bytes are matched, or if
    * the stream is exhausted before enough bytes could determine a match.
    */
-  @Throws(IOException::class)
   suspend fun rangeEquals(offset: Long, bytes: ByteString, bytesOffset: Int = 0, byteCount: Int = bytes.size): Boolean
 
   /**

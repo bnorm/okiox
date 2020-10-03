@@ -21,7 +21,6 @@ import okio.BufferedSource
 import okio.Source
 import okio.Timeout
 import okio.buffer
-import java.io.IOException
 import java.net.ProtocolException
 import javax.crypto.Cipher
 
@@ -29,7 +28,7 @@ class CipherSource private constructor(
   private val source: BufferedSource,
   private val cipher: Cipher
 ) : Source {
-  constructor(source: Source, cipher: Cipher) : this(source.buffer(), cipher) {}
+  constructor(source: Source, cipher: Cipher) : this(source.buffer(), cipher)
 
   init {
     require(cipher.algorithm.contains("NoPadding")) { cipher.algorithm }
@@ -40,8 +39,6 @@ class CipherSource private constructor(
   private val sinkCursor = Buffer.UnsafeCursor()
 
   private var closed: Boolean = false
-
-  @Throws(IOException::class)
   override fun read(sink: Buffer, byteCount: Long): Long {
     require(byteCount >= 0) { "byteCount < 0: $byteCount" }
     check(!closed) { "closed" }
@@ -50,7 +47,14 @@ class CipherSource private constructor(
     if (ciphered.size >= byteCount) return ciphered.read(sink, byteCount)
 
     refill(byteCount)
-    process(cipher, source.buffer, sourceCursor, source.buffer.size, ciphered, sinkCursor)
+    process(
+      cipher = cipher,
+      source = source.buffer,
+      sourceCursor = sourceCursor,
+      byteCount = source.buffer.size,
+      sink = ciphered,
+      sinkCursor = sinkCursor
+    )
     if (source.exhausted() && ciphered.exhausted() && cipher.getOutputSize(0) > 0) {
       throw ProtocolException("blockSize=${cipher.blockSize} unprocessed=${cipher.getOutputSize(0)}")
     }
@@ -70,8 +74,6 @@ class CipherSource private constructor(
 
     return source.request(needed)
   }
-
-  @Throws(IOException::class)
   override fun close() {
     if (closed) return
     source.close()

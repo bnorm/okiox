@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@file:JvmName("-ExtensionsJvm")
+@file:JvmName("-JvmInterop")
 
 package okiox.coroutines
 

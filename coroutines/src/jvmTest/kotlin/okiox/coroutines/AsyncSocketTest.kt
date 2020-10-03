@@ -36,11 +36,11 @@ import kotlin.test.fail
 
 class AsyncSocketTest {
   @Test fun asyncSocket() = runTest { client, server ->
-    val clientSource = client.source().buffer()
-    val clientSink = client.sink().buffer()
+    val clientSource = client.asAsyncSource().buffer()
+    val clientSink = client.asAsyncSink().buffer()
 
-    val serverSource = server.source().buffer()
-    val serverSink = server.sink().buffer()
+    val serverSource = server.asAsyncSource().buffer()
+    val serverSink = server.asAsyncSink().buffer()
 
     clientSink.writeUtf8("abc")
     clientSink.flush()
@@ -54,8 +54,8 @@ class AsyncSocketTest {
   }
 
   @Test fun readUntilEof() = runTest { client, server ->
-    val serverSink = client.sink().buffer()
-    val clientSource = server.source().buffer()
+    val serverSink = client.asAsyncSink().buffer()
+    val clientSource = server.asAsyncSource().buffer()
 
     serverSink.writeUtf8("abc")
     serverSink.close()
@@ -64,7 +64,7 @@ class AsyncSocketTest {
   }
 
   @Test fun readFailsBecauseTheSocketIsAlreadyClosed() = runTest { _, server ->
-    val serverSource = server.source().buffer()
+    val serverSource = server.asAsyncSource().buffer()
 
     server.close()
 
@@ -74,7 +74,7 @@ class AsyncSocketTest {
   }
 
   @Test fun writeFailsBecauseTheSocketIsAlreadyClosed() = runTest { _, server ->
-    val serverSink = server.sink().buffer()
+    val serverSink = server.asAsyncSink().buffer()
 
     server.close()
 
@@ -85,7 +85,7 @@ class AsyncSocketTest {
   }
 
   @Test fun blockedReadFailsDueToClose() = runTest { _, server ->
-    val serverSource = server.source().buffer()
+    val serverSource = server.asAsyncSource().buffer()
 
     coroutineScope {
       launch {
@@ -100,7 +100,7 @@ class AsyncSocketTest {
   }
 
   @Test fun blockedWriteFailsDueToClose() = runTest { _, server ->
-    val serverSink = server.sink().buffer()
+    val serverSink = server.asAsyncSink().buffer()
 
     coroutineScope {
       launch {

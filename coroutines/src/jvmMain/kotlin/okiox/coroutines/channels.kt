@@ -22,6 +22,8 @@ package okiox.coroutines
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.suspendCancellableCoroutine
 import okio.Buffer
+import okiox.coroutines.internal.SEGMENT_SIZE
+import okiox.coroutines.internal.readUnsafe
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
 import java.nio.channels.AsynchronousSocketChannel
@@ -29,15 +31,15 @@ import java.nio.channels.CompletionHandler
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-suspend fun AsynchronousSocketChannel.source(): AsyncSource {
+suspend fun AsynchronousSocketChannel.asAsyncSource(): AsyncSource {
   val channel = this
 
   return object : AsyncSource {
-    val buffer = ByteBuffer.allocateDirect(8192)
+    val buffer = ByteBuffer.allocateDirect(SEGMENT_SIZE.toInt())
 
     override suspend fun read(sink: Buffer, byteCount: Long): Long {
       buffer.clear()
-      buffer.limit(minOf(buffer.capacity(), byteCount.toInt()))
+      buffer.limit(minOf(SEGMENT_SIZE, byteCount).toInt())
       val read = channel.aRead(buffer)
       buffer.flip()
       if (read > 0) sink.write(buffer)
@@ -50,14 +52,14 @@ suspend fun AsynchronousSocketChannel.source(): AsyncSource {
   }
 }
 
-suspend fun AsynchronousSocketChannel.sink(): AsyncSink {
+suspend fun AsynchronousSocketChannel.asAsyncSink(): AsyncSink {
   val channel = this
 
   return object : AsyncSink {
     val cursor = Buffer.UnsafeCursor()
 
     override suspend fun write(source: Buffer, byteCount: Long) {
-      source.readUnsafe(cursor).use {
+      source.readUnsafe(cursor) {
         var remaining = byteCount
         while (remaining > 0) {
           cursor.seek(0)
@@ -79,12 +81,12 @@ suspend fun AsynchronousSocketChannel.sink(): AsyncSink {
   }
 }
 
-suspend fun AsynchronousFileChannel.source(): AsyncSource {
+suspend fun AsynchronousFileChannel.asAsyncSource(): AsyncSource {
   val channel = this
 
   return object : AsyncSource {
     var position = 0L
-    val buffer = ByteBuffer.allocateDirect(8192)
+    val buffer = ByteBuffer.allocateDirect(SEGMENT_SIZE.toInt())
 
     override suspend fun read(sink: Buffer, byteCount: Long): Long {
       buffer.clear()
@@ -104,7 +106,7 @@ suspend fun AsynchronousFileChannel.source(): AsyncSource {
   }
 }
 
-suspend fun AsynchronousFileChannel.sink(): AsyncSink {
+suspend fun AsynchronousFileChannel.asAsyncSink(): AsyncSink {
   val channel = this
 
   return object : AsyncSink {
@@ -112,7 +114,7 @@ suspend fun AsynchronousFileChannel.sink(): AsyncSink {
     val cursor = Buffer.UnsafeCursor()
 
     override suspend fun write(source: Buffer, byteCount: Long) {
-      source.readUnsafe(cursor).use {
+      source.readUnsafe(cursor) {
         var remaining = byteCount
         while (remaining > 0) {
           cursor.seek(0)
@@ -127,7 +129,7 @@ suspend fun AsynchronousFileChannel.sink(): AsyncSink {
     }
 
     override suspend fun flush() {
-      channel.force(false)
+      channel.force(/* metaData */ false)
     }
 
     override suspend fun close() {
@@ -138,18 +140,22 @@ suspend fun AsynchronousFileChannel.sink(): AsyncSink {
 
 private suspend fun AsynchronousSocketChannel.aRead(buffer: ByteBuffer): Int = suspendCancellableCoroutine { cont ->
   read(buffer, cont, ChannelCompletionHandler)
+  cont.invokeOnCancellation { close() }
 }
 
 private suspend fun AsynchronousSocketChannel.aWrite(buffer: ByteBuffer): Int = suspendCancellableCoroutine { cont ->
   write(buffer, cont, ChannelCompletionHandler)
+  cont.invokeOnCancellation { close() }
 }
 
 private suspend fun AsynchronousFileChannel.aRead(buffer: ByteBuffer, position: Long): Int = suspendCancellableCoroutine { cont ->
   read(buffer, position, cont, ChannelCompletionHandler)
+  cont.invokeOnCancellation { close() }
 }
 
 private suspend fun AsynchronousFileChannel.aWrite(buffer: ByteBuffer, position: Long): Int = suspendCancellableCoroutine { cont ->
   write(buffer, position, cont, ChannelCompletionHandler)
+  cont.invokeOnCancellation { close() }
 }
 
 private object ChannelCompletionHandler : CompletionHandler<Int, CancellableContinuation<Int>> {

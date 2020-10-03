@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-@file:JvmName("-FilesJvm")
-@file:Suppress("BlockingMethodInNonBlockingContext")
+@file:JvmName("-JvmSelector")
 
 package okiox.coroutines.internal
 
@@ -48,7 +47,7 @@ internal class SelectorThread : Thread("okiox selector") {
   private val keys = ConcurrentLinkedQueue<SelectionKey>()
 
   suspend fun waitForSelection(channel: SelectableChannel, ops: Int) {
-    suspendCancellableCoroutine<SelectionKey> { cont ->
+    suspendCancellableCoroutine<Unit> { cont ->
       val key = channel.register(selector, ops, cont)
       check(key.attachment() === cont) { "already registered" }
 
@@ -64,24 +63,34 @@ internal class SelectorThread : Thread("okiox selector") {
 
   override fun run() {
     while (true) {
-      selector.select()
-      selector.selectedKeys().clear()
+      try {
+        synchronized(selector) {
+          val selectedKeys = selector.selectedKeys()
+          synchronized(selectedKeys) {
+            selector.select()
+            selectedKeys.clear()
 
-      val iter = keys.iterator()
-      while (iter.hasNext()) {
-        val key = iter.next()
+            val iter = keys.iterator()
+            while (iter.hasNext()) {
+              val key = iter.next()
 
-        if (!key.isValid) {
-          @Suppress("UNCHECKED_CAST")
-          val cont = key.attach(null) as CancellableContinuation<SelectionKey>
-          if (!cont.isCompleted) cont.resumeWithException(IOException("closed"))
-          iter.remove()
-        } else if (key.readyOps() > 0) {
-          @Suppress("UNCHECKED_CAST")
-          val cont = key.attach(null) as CancellableContinuation<SelectionKey>
-          cont.resume(key)
-          iter.remove()
+              if (!key.isValid) {
+                @Suppress("UNCHECKED_CAST")
+                val cont = key.attach(null) as CancellableContinuation<Unit>
+                if (!cont.isCompleted) cont.resumeWithException(IOException("closed"))
+                iter.remove()
+              } else if (key.readyOps() > 0) {
+                @Suppress("UNCHECKED_CAST")
+                val cont = key.attach(null) as CancellableContinuation<Unit>
+                cont.resume(Unit)
+                iter.remove()
+              }
+            }
+          }
         }
+      } catch (e: Throwable) {
+        // log error
+        e.printStackTrace()
       }
     }
   }

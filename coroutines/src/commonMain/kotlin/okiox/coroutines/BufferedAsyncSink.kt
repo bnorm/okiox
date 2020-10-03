@@ -18,8 +18,6 @@ package okiox.coroutines
 
 import okio.Buffer
 import okio.ByteString
-import okio.IOException
-import okiox.coroutines.internal.Throws
 
 /**
  * Returns a new sink that buffers writes to `sink`. The returned sink will batch writes to `sink`.
@@ -35,22 +33,18 @@ interface BufferedAsyncSink : AsyncSink {
   /** This sink's internal buffer. */
   val buffer: Buffer
 
-  @Throws(IOException::class)
   suspend fun write(byteString: ByteString): BufferedAsyncSink
 
   /** Like OutputStream.write, this writes `byteCount` bytes of `source`, starting at `offset`. */
-  @Throws(IOException::class)
   suspend fun write(source: ByteArray, offset: Int = 0, byteCount: Int = source.size): BufferedAsyncSink
 
   /**
    * Removes all bytes from `source` and appends them to this sink. Returns the number of bytes read
    * which will be 0 if `source` is exhausted.
    */
-  @Throws(IOException::class)
   suspend fun writeAll(source: AsyncSource): Long
 
   /** Removes `byteCount` bytes from `source` and appends them to this sink. */
-  @Throws(IOException::class)
   suspend fun write(source: AsyncSource, byteCount: Long): BufferedAsyncSink
 
   /**
@@ -67,15 +61,12 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals("hacker nerd hacker!", buffer.readUtf8());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun writeUtf8(string: String, beginIndex: Int = 0, endIndex: Int = string.length): BufferedAsyncSink
 
   /** Encodes `codePoint` in UTF-8 and writes it to this sink. */
-  @Throws(IOException::class)
   suspend fun writeUtf8CodePoint(codePoint: Int): BufferedAsyncSink
 
   /** Writes a byte to this sink. */
-  @Throws(IOException::class)
   suspend fun writeByte(b: Int): BufferedAsyncSink
 
   /**
@@ -93,7 +84,6 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun writeShort(s: Int): BufferedAsyncSink
 
   /**
@@ -111,7 +101,6 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun writeShortLe(s: Int): BufferedAsyncSink
 
   /**
@@ -133,7 +122,6 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun writeInt(i: Int): BufferedAsyncSink
 
   /**
@@ -155,7 +143,6 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun writeIntLe(i: Int): BufferedAsyncSink
 
   /**
@@ -185,7 +172,6 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun writeLong(v: Long): BufferedAsyncSink
 
   /**
@@ -215,7 +201,6 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals(0, buffer.size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun writeLongLe(v: Long): BufferedAsyncSink
 
   /**
@@ -231,7 +216,6 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals("8675309 -123 1", buffer.readUtf8());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun writeDecimalLong(v: Long): BufferedAsyncSink
 
   /**
@@ -247,7 +231,6 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals("ffff cafebabe 10", buffer.readUtf8());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun writeHexadecimalUnsignedLong(v: Long): BufferedAsyncSink
 
   /**
@@ -270,7 +253,6 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals(5, b0.buffer().size());
    * ```
    */
-  @Throws(IOException::class)
   override suspend fun flush()
 
   /**
@@ -297,7 +279,6 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals(5, b0.buffer().size());
    * ```
    */
-  @Throws(IOException::class)
   suspend fun emit(): BufferedAsyncSink
 
   /**
@@ -321,6 +302,5 @@ interface BufferedAsyncSink : AsyncSink {
    * assertEquals(16_384, b0.buffer().size()); // This example assumes 8192 byte segments.
    * ```
    */
-  @Throws(IOException::class)
   suspend fun emitCompleteSegments(): BufferedAsyncSink
 }

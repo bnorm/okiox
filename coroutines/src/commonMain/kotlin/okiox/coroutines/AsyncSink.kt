@@ -17,16 +17,9 @@
 package okiox.coroutines
 
 import okio.Buffer
-import okio.IOException
-import okiox.coroutines.internal.Throws
 
 interface AsyncSink {
-  @Throws(IOException::class)
   suspend fun write(source: Buffer, byteCount: Long)
-
-  @Throws(IOException::class)
   suspend fun flush()
-
-  @Throws(IOException::class)
   suspend fun close()
 }

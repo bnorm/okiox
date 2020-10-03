@@ -21,7 +21,6 @@ import okio.BufferedSink
 import okio.Sink
 import okio.Timeout
 import okio.buffer
-import java.io.IOException
 import java.net.ProtocolException
 import javax.crypto.Cipher
 
@@ -39,23 +38,24 @@ class CipherSink private constructor(
   private val sinkCursor = Buffer.UnsafeCursor()
 
   private var closed: Boolean = false
-
-  @Throws(IOException::class)
   override fun write(source: Buffer, byteCount: Long) {
     require(byteCount >= 0) { "byteCount < 0: $byteCount" }
     check(!closed) { "closed" }
 
-    process(cipher, source, sourceCursor, byteCount, sink.buffer, sinkCursor)
+    process(
+      cipher = cipher,
+      source = source,
+      sourceCursor = sourceCursor,
+      byteCount = byteCount,
+      sink = sink.buffer,
+      sinkCursor = sinkCursor
+    )
     sink.emitCompleteSegments()
   }
-
-  @Throws(IOException::class)
   override fun flush() {
     check(!closed) { "closed" }
     sink.flush()
   }
-
-  @Throws(IOException::class)
   override fun close() {
     if (closed) return
 

@@ -6,21 +6,7 @@ kotlin {
     sourceSets {
         commonMain {
             dependencies {
-                api "org.jetbrains.kotlinx:kotlinx-coroutines-core-common:1.3.5"
-            }
-        }
-        jvmMain {
-            dependencies {
-                api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.5"
-            }
-        }
-        jsMain {
-            dependencies {
-                api "org.jetbrains.kotlinx:kotlinx-coroutines-core-js:1.3.5"
-            }
-        }
-        nativeMain {
-            dependencies {
+                api "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.9"
             }
         }
     }

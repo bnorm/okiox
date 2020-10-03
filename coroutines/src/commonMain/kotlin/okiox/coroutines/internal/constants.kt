@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Brian Norman
+ * Copyright (C) 2020 Brian Norman
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+@file:JvmName("-InternalConstants")
+
 package okiox.coroutines.internal
 
-import kotlin.reflect.KClass
+import kotlin.jvm.JvmName
 
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.CONSTRUCTOR)
-@Retention(AnnotationRetention.SOURCE)
-actual annotation class Throws actual constructor(actual vararg val exceptionClasses: KClass<out Throwable>)
+internal const val SEGMENT_SIZE = 8192.toLong()

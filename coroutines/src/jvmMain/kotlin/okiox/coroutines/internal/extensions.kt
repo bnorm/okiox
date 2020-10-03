@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2019 Brian Norman
+ * Copyright (C) 2020 Brian Norman
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,26 @@
  * limitations under the License.
  */
 
-@file:JvmName("-Platform")
+@file:JvmName("-JvmInternalExtensions")
+
 package okiox.coroutines.internal
 
-import kotlin.jvm.JvmName
-import kotlin.reflect.KClass
+import okio.Buffer
 
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.CONSTRUCTOR)
-@Retention(AnnotationRetention.SOURCE)
-expect annotation class Throws(vararg val exceptionClasses: KClass<out Throwable>)
+internal inline fun <R> Buffer.readUnsafe(
+  cursor: Buffer.UnsafeCursor = Buffer.UnsafeCursor(),
+  block: (cursor: Buffer.UnsafeCursor) -> R
+): R {
+  return readUnsafe(cursor).use {
+    block(cursor)
+  }
+}
+
+internal inline fun <R> Buffer.readAndWriteUnsafe(
+  cursor: Buffer.UnsafeCursor = Buffer.UnsafeCursor(),
+  block: (cursor: Buffer.UnsafeCursor) -> R
+): R {
+  return readAndWriteUnsafe(cursor).use {
+    block(cursor)
+  }
+}

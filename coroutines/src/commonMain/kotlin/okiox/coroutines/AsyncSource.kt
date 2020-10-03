@@ -17,13 +17,8 @@
 package okiox.coroutines
 
 import okio.Buffer
-import okio.IOException
-import okiox.coroutines.internal.Throws
 
 interface AsyncSource {
-  @Throws(IOException::class)
   suspend fun read(sink: Buffer, byteCount: Long): Long
-
-  @Throws(IOException::class)
   suspend fun close()
 }

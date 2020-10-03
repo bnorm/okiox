@@ -20,18 +20,14 @@ import okio.Buffer
 import okio.ByteString
 import okio.EOFException
 import okio.Options
+import okiox.coroutines.internal.SEGMENT_SIZE
 import kotlin.jvm.JvmField
 
 internal class RealBufferedAsyncSource(
-  @JvmField val source: AsyncSource
+  private val source: AsyncSource
 ) : BufferedAsyncSource {
-
-  @JvmField val bufferField = Buffer()
-  @JvmField var closed: Boolean = false
-
-  @Suppress("OVERRIDE_BY_INLINE") // Prevent internal code from calling the getter.
-  override val buffer: Buffer
-    inline get() = bufferField
+  private var closed: Boolean = false
+  override val buffer = Buffer()
 
   override suspend fun read(sink: Buffer, byteCount: Long): Long {
     require(byteCount >= 0) { "byteCount < 0: $byteCount" }
@@ -188,37 +184,35 @@ internal class RealBufferedAsyncSource(
   }
 
   override suspend fun readUtf8Line(): String? {
-    TODO()
-//    val newline = indexOf('\n'.toByte())
-//
-//    return if (newline == -1L) {
-//      if (buffer.size != 0L) {
-//        readUtf8(buffer.size)
-//      } else {
-//        null
-//      }
-//    } else {
-//      buffer.readUtf8Line(newline)
-//    }
+    val newline = indexOf('\n'.toByte())
+
+    return if (newline == -1L) {
+      if (buffer.size != 0L) {
+        readUtf8(buffer.size)
+      } else {
+        null
+      }
+    } else {
+      buffer.readUtf8Line(newline)
+    }
   }
 
   override suspend fun readUtf8LineStrict() = readUtf8LineStrict(Long.MAX_VALUE)
 
   override suspend fun readUtf8LineStrict(limit: Long): String {
-    TODO()
-//    require(limit >= 0) { "limit < 0: $limit" }
-//    val scanLength = if (limit == Long.MAX_VALUE) Long.MAX_VALUE else limit + 1
-//    val newline = indexOf('\n'.toByte(), 0, scanLength)
-//    if (newline != -1L) return buffer.readUtf8Line(newline)
-//    if (scanLength < Long.MAX_VALUE &&
-//        request(scanLength) && buffer[scanLength - 1] == '\r'.toByte() &&
-//        request(scanLength + 1) && buffer[scanLength] == '\n'.toByte()) {
-//      return buffer.readUtf8Line(scanLength) // The line was 'limit' UTF-8 bytes followed by \r\n.
-//    }
-//    val data = Buffer()
-//    buffer.copyTo(data, 0, minOf(32, buffer.size))
-//    throw EOFException("\\n not found: limit=" + minOf(buffer.size, limit) +
-//      " content=" + data.readByteString().hex() + '…'.toString())
+    require(limit >= 0) { "limit < 0: $limit" }
+    val scanLength = if (limit == Long.MAX_VALUE) Long.MAX_VALUE else limit + 1
+    val newline = indexOf('\n'.toByte(), 0, scanLength)
+    if (newline != -1L) return buffer.readUtf8Line(newline)
+    if (scanLength < Long.MAX_VALUE &&
+        request(scanLength) && buffer[scanLength - 1] == '\r'.toByte() &&
+        request(scanLength + 1) && buffer[scanLength] == '\n'.toByte()) {
+      return buffer.readUtf8Line(scanLength) // The line was 'limit' UTF-8 bytes followed by \r\n.
+    }
+    val data = Buffer()
+    buffer.copyTo(data, 0, minOf(32, buffer.size))
+    throw EOFException("\\n not found: limit=" + minOf(buffer.size, limit) +
+      " content=" + data.readByteString().hex() + '…'.toString())
   }
 
   override suspend fun readUtf8CodePoint(): Int {
@@ -401,4 +395,21 @@ internal class RealBufferedAsyncSource(
   }
 
   override fun toString() = "buffer($source)"
+}
+
+internal fun Buffer.readUtf8Line(newline: Long): String {
+  return when {
+    newline > 0 && this[newline - 1] == '\r'.toByte() -> {
+      // Read everything until '\r\n', then skip the '\r\n'.
+      val result = readUtf8(newline - 1L)
+      skip(2L)
+      result
+    }
+    else -> {
+      // Read everything until '\n', then skip the '\n'.
+      val result = readUtf8(newline)
+      skip(1L)
+      result
+    }
+  }
 }

@@ -24,7 +24,6 @@ import javax.crypto.Cipher
  * Drain `byteCount` bytes from `source`, run them through the cipher, and write all
  * processed output into `sink`.
  */
-@Throws(IOException::class)
 internal fun process(
   cipher: Cipher,
   source: Buffer,

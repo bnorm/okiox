@@ -20,22 +20,23 @@
 package okiox.coroutines
 
 import okio.Buffer
+import okiox.coroutines.internal.SEGMENT_SIZE
 import okiox.coroutines.internal.await
 import java.net.Socket
 import java.nio.ByteBuffer
 import java.nio.channels.SelectionKey
 
-suspend fun Socket.source(): AsyncSource {
+suspend fun Socket.asAsyncSource(): AsyncSource {
   val channel = this.channel!!
 
   return object : AsyncSource {
-    val buffer = ByteBuffer.allocateDirect(8192)
+    val buffer = ByteBuffer.allocateDirect(SEGMENT_SIZE.toInt())
 
     override suspend fun read(sink: Buffer, byteCount: Long): Long {
       channel.await(SelectionKey.OP_READ)
 
       buffer.clear()
-      buffer.limit(minOf(buffer.capacity(), byteCount.toInt()))
+      buffer.limit(minOf(SEGMENT_SIZE, byteCount).toInt())
       val read = channel.read(buffer)
       buffer.flip()
       if (read > 0) sink.write(buffer)
@@ -48,7 +49,7 @@ suspend fun Socket.source(): AsyncSource {
   }
 }
 
-suspend fun Socket.sink(): AsyncSink {
+suspend fun Socket.asAsyncSink(): AsyncSink {
   val channel = this.channel!!
 
   return object : AsyncSink {
