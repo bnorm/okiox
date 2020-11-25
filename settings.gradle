@@ -1,9 +1,8 @@
 rootProject.name = 'okiox'
 
-include(":cipher")
-project(":cipher").name = "okiox-cipher"
+okioxInclude("coroutines")
 
-include(":coroutines")
-project(":coroutines").name = "okiox-coroutines"
-
-enableFeaturePreview('GRADLE_METADATA')
+void okioxInclude(String name) {
+    include(":${name}")
+    project(":${name}").name = "okiox-${name}"
+}

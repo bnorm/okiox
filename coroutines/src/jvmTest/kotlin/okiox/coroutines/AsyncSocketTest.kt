@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import okiox.coroutines.internal.await
+import org.junit.Ignore
 import org.junit.Test
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -34,6 +35,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.test.fail
 
+@Ignore
 class AsyncSocketTest {
   @Test fun asyncSocket() = runTest { client, server ->
     val clientSource = client.asAsyncSource().buffer()
